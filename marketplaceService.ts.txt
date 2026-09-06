@@ -1,0 +1,69 @@
+import {
+  Brand,
+  MarketplaceCategory,
+  NearbyStore,
+  Product,
+} from '@/types/marketplace';
+import {
+  marketplaceCategories,
+  marketplaceProducts,
+  nearbyStores,
+  topBrands,
+} from '@/data/marketplace';
+
+/**
+ * Service layer for the 1Fi Marketplace.
+ *
+ * These functions simulate real network calls (including latency and a
+ * small chance of failure) so the UI layer can be built exactly the way
+ * it would be against a real backend. Screens/hooks should always go
+ * through this module rather than importing the mock arrays directly.
+ */
+
+const NETWORK_DELAY_MS = 600;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Set to true to preview the error state during development/demo. */
+let SIMULATE_FAILURE = false;
+
+export function __setSimulateFailure(value: boolean): void {
+  SIMULATE_FAILURE = value;
+}
+
+function maybeFail(context: string): void {
+  if (SIMULATE_FAILURE) {
+    throw new Error(`Simulated network failure while ${context}`);
+  }
+}
+
+export async function getProducts(): Promise<Product[]> {
+  await delay(NETWORK_DELAY_MS);
+  maybeFail('fetching products');
+  return marketplaceProducts;
+}
+
+export async function getProductById(id: string): Promise<Product | undefined> {
+  await delay(NETWORK_DELAY_MS);
+  maybeFail('fetching product details');
+  return marketplaceProducts.find((product) => product.id === id);
+}
+
+export async function getBrands(): Promise<Brand[]> {
+  await delay(NETWORK_DELAY_MS);
+  maybeFail('fetching brands');
+  return topBrands;
+}
+
+export async function getNearbyStores(): Promise<NearbyStore[]> {
+  await delay(NETWORK_DELAY_MS);
+  maybeFail('fetching nearby stores');
+  return nearbyStores;
+}
+
+export async function getCategories(): Promise<MarketplaceCategory[]> {
+  await delay(200);
+  return marketplaceCategories;
+}

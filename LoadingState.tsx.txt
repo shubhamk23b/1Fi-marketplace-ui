@@ -1,0 +1,76 @@
+import React from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+
+interface LoadingStateProps {
+  variant?: 'grid' | 'inline';
+}
+
+/**
+ * Loading placeholder for the Marketplace. Renders skeleton product
+ * cards for the grid so the layout doesn't jump once real data arrives.
+ */
+export function LoadingState({ variant = 'grid' }: LoadingStateProps) {
+  if (variant === 'inline') {
+    return (
+      <View style={styles.inlineContainer} accessibilityLabel="Loading">
+        <ActivityIndicator color={colors.purple} size="large" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.grid} accessibilityLabel="Loading marketplace products">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <View key={index} style={styles.skeletonCard}>
+          <View style={styles.skeletonImage} />
+          <View style={styles.skeletonLineShort} />
+          <View style={styles.skeletonLine} />
+          <View style={styles.skeletonLineShort} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  inlineContainer: {
+    paddingVertical: spacing.xxxl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+  },
+  skeletonCard: {
+    width: '47%',
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  skeletonImage: {
+    width: '100%',
+    aspectRatio: 1.2,
+    borderRadius: radius.md,
+    backgroundColor: colors.borderLight,
+  },
+  skeletonLine: {
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.borderLight,
+    width: '90%',
+  },
+  skeletonLineShort: {
+    height: 10,
+    borderRadius: 6,
+    backgroundColor: colors.borderLight,
+    width: '50%',
+  },
+});

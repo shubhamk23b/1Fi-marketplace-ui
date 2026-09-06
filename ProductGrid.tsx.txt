@@ -1,0 +1,48 @@
+import React from 'react';
+import { FlatList, StyleSheet } from 'react-native';
+import { Product } from '@/types/marketplace';
+import { spacing } from '@/theme/spacing';
+import { ProductCard } from './ProductCard';
+
+interface ProductGridProps {
+  products: Product[];
+  onProductPress: (product: Product) => void;
+  ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
+}
+
+/**
+ * Two-column responsive product grid backed by FlatList so large
+ * catalogues stay performant (windowing, no ScrollView + map).
+ */
+export function ProductGrid({
+  products,
+  onProductPress,
+  ListHeaderComponent,
+}: ProductGridProps) {
+  return (
+    <FlatList
+      data={products}
+      key="two-column-grid"
+      keyExtractor={(item) => item.id}
+      numColumns={2}
+      columnWrapperStyle={styles.row}
+      contentContainerStyle={styles.content}
+      ListHeaderComponent={ListHeaderComponent}
+      renderItem={({ item }) => (
+        <ProductCard product={item} onPress={onProductPress} />
+      )}
+      showsVerticalScrollIndicator={false}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  content: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxxl,
+    gap: spacing.md,
+  },
+  row: {
+    gap: spacing.md,
+  },
+});

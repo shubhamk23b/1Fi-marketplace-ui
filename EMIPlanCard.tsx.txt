@@ -1,0 +1,129 @@
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { EMIPlan } from '@/types/marketplace';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+import { formatCurrency } from '@/utils/emiCalculator';
+
+interface EMIPlanCardProps {
+  plan: EMIPlan;
+  selected: boolean;
+  onSelect: (plan: EMIPlan) => void;
+}
+
+/** Renders a single selectable EMI plan with its full cost breakdown. */
+export function EMIPlanCard({ plan, selected, onSelect }: EMIPlanCardProps) {
+  return (
+    <Pressable
+      onPress={() => onSelect(plan)}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      accessibilityLabel={`${plan.durationMonths} month EMI plan, ${formatCurrency(plan.monthlyAmount)} per month`}
+      style={[styles.card, selected ? styles.cardSelected : styles.cardUnselected]}
+    >
+      <View style={styles.header}>
+        <Text style={[styles.duration, selected && styles.textSelected]}>
+          {plan.durationMonths} Months
+        </Text>
+        {plan.isNoCost && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>No-cost EMI</Text>
+          </View>
+        )}
+      </View>
+
+      <Text style={[styles.monthly, selected && styles.textSelected]}>
+        {formatCurrency(plan.monthlyAmount)}
+        <Text style={styles.monthlySuffix}>/month</Text>
+      </Text>
+
+      <View style={styles.detailsRow}>
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Interest</Text>
+          <Text style={styles.detailValue}>{plan.interestRate}%</Text>
+        </View>
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Processing Fee</Text>
+          <Text style={styles.detailValue}>{formatCurrency(plan.processingFee)}</Text>
+        </View>
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Total</Text>
+          <Text style={styles.detailValue}>{formatCurrency(plan.totalPayable)}</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  cardSelected: {
+    borderColor: colors.purple,
+    backgroundColor: colors.purpleLight,
+  },
+  cardUnselected: {
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  duration: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.darkText,
+  },
+  textSelected: {
+    color: colors.purpleDark,
+  },
+  badge: {
+    backgroundColor: colors.successLight,
+    borderRadius: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.success,
+  },
+  monthly: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginTop: spacing.xs,
+  },
+  monthlySuffix: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: colors.secondaryText,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  },
+  detailItem: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 11,
+    color: colors.secondaryText,
+    marginBottom: 2,
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.darkText,
+  },
+});

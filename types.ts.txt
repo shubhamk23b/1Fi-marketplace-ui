@@ -1,0 +1,27 @@
+import { NavigatorScreenParams } from '@react-navigation/native';
+
+export type MainTabParamList = {
+  Home: undefined;
+  Shop: undefined;
+  EMIDues: undefined;
+  Limit: undefined;
+  Profile: undefined;
+};
+
+export type RootStackParamList = {
+  MainTabs: NavigatorScreenParams<MainTabParamList>;
+  Marketplace: undefined;
+  ProductDetails: { productId: string };
+  MarketplaceSuccess: {
+    productName: string;
+    durationMonths: number;
+    monthlyAmount: number;
+  };
+};
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}

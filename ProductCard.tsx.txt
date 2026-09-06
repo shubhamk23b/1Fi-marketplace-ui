@@ -1,0 +1,139 @@
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Product } from '@/types/marketplace';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+import { formatCurrency } from '@/utils/emiCalculator';
+import { ProductImagePlaceholder } from './ProductImagePlaceholder';
+
+interface ProductCardProps {
+  product: Product;
+  onPress: (product: Product) => void;
+}
+
+/**
+ * Presentational product card for the Marketplace grid. Contains no
+ * business logic — navigation is delegated entirely to the onPress
+ * callback provided by the parent screen.
+ */
+export function ProductCard({ product, onPress }: ProductCardProps) {
+  const startingEmi = product.emiPlans.reduce(
+    (min, plan) => (plan.monthlyAmount < min ? plan.monthlyAmount : min),
+    product.emiPlans[0]?.monthlyAmount ?? product.price
+  );
+
+  return (
+    <Pressable
+      onPress={() => onPress(product)}
+      accessibilityRole="button"
+      accessibilityLabel={`View details for ${product.name}`}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    >
+      <ProductImagePlaceholder
+        imageKey={product.image}
+        colorFrom={product.imageColors[0]}
+        colorTo={product.imageColors[1]}
+        style={styles.image}
+      />
+
+      <View style={styles.content}>
+        <Text style={styles.brand} numberOfLines={1}>
+          {product.brand}
+        </Text>
+        <Text style={styles.name} numberOfLines={2}>
+          {product.name}
+        </Text>
+
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>{formatCurrency(product.price)}</Text>
+          {!!product.discount && (
+            <Text style={styles.discount}>{product.discount}% OFF</Text>
+          )}
+        </View>
+
+        <Text style={styles.emiFrom}>
+          {formatCurrency(startingEmi)}/month
+        </Text>
+
+        <View style={styles.noCostPill}>
+          <Text style={styles.noCostText}>No-cost EMI</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.99 }],
+  },
+  image: {
+    width: '100%',
+    aspectRatio: 1.2,
+  },
+  content: {
+    padding: spacing.md,
+    gap: 4,
+  },
+  brand: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.secondaryText,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  name: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.darkText,
+    minHeight: 36,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: 2,
+  },
+  price: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.darkText,
+  },
+  discount: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.success,
+  },
+  emiFrom: {
+    fontSize: 12,
+    color: colors.secondaryText,
+    marginTop: 2,
+  },
+  noCostPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.purpleLight,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    marginTop: spacing.xs,
+  },
+  noCostText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.purple,
+  },
+});

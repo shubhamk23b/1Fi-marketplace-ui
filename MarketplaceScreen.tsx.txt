@@ -1,0 +1,150 @@
+import React, { useCallback } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '@/navigation/types';
+import { MarketplaceCategoryId, Product } from '@/types/marketplace';
+import { useMarketplace } from '@/hooks/marketplace/useMarketplace';
+import { marketplaceCategories } from '@/data/marketplace';
+import { colors } from '@/theme/colors';
+import { spacing } from '@/theme/spacing';
+import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
+import { SearchBar } from '@/components/marketplace/SearchBar';
+import { CategoryChip } from '@/components/marketplace/CategoryChip';
+import { ProductGrid } from '@/components/marketplace/ProductGrid';
+import { LoadingState } from '@/components/marketplace/LoadingState';
+import { ErrorState } from '@/components/marketplace/ErrorState';
+import { EmptyState } from '@/components/marketplace/EmptyState';
+import { ScrollView } from 'react-native';
+
+type MarketplaceNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+interface MarketplaceScreenProps {
+  /** When true, renders without its own SafeAreaView/back button, for
+   * embedding inline inside the Shop screen's "1Fi Marketplace" tab. */
+  embedded?: boolean;
+}
+
+/**
+ * The full 1Fi Marketplace browsing experience: category filters, search
+ * and a responsive product grid, each backed by the useMarketplace hook.
+ */
+export function MarketplaceScreen({ embedded = false }: MarketplaceScreenProps) {
+  const navigation = useNavigation<MarketplaceNavigationProp>();
+  const {
+    filteredProducts,
+    loading,
+    error,
+    searchQuery,
+    selectedCategory,
+    setSearchQuery,
+    setSelectedCategory,
+    retry,
+  } = useMarketplace();
+
+  const handleProductPress = useCallback(
+    (product: Product) => {
+      navigation.navigate('ProductDetails', { productId: product.id });
+    },
+    [navigation]
+  );
+
+  const header = (
+    <View style={styles.headerBlock}>
+      {!embedded && (
+        <MarketplaceHeader
+          title="1Fi Marketplace"
+          subtitle="Shop your favourite products on no-cost EMI"
+          onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+        />
+      )}
+
+      <View style={styles.categoriesWrap}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {marketplaceCategories.map((category) => (
+            <CategoryChip
+              key={category.id}
+              label={category.label}
+              selected={category.id === selectedCategory}
+              onPress={() => setSelectedCategory(category.id as MarketplaceCategoryId)}
+            />
+          ))}
+        </ScrollView>
+      </View>
+
+      <View style={styles.searchWrap}>
+        <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+      </View>
+    </View>
+  );
+
+  const content = (() => {
+    if (loading) {
+      return (
+        <View>
+          {header}
+          <LoadingState variant="grid" />
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View>
+          {header}
+          <ErrorState message={error} onRetry={retry} />
+        </View>
+      );
+    }
+
+    if (filteredProducts.length === 0) {
+      return (
+        <View>
+          {header}
+          <EmptyState />
+        </View>
+      );
+    }
+
+    return (
+      <ProductGrid
+        products={filteredProducts}
+        onProductPress={handleProductPress}
+        ListHeaderComponent={header}
+      />
+    );
+  })();
+
+  if (embedded) {
+    return <View style={styles.embeddedContainer}>{content}</View>;
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      {content}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  embeddedContainer: {
+    flex: 1,
+  },
+  headerBlock: {
+    paddingBottom: spacing.md,
+  },
+  categoriesWrap: {
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  searchWrap: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+});

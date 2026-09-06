@@ -1,0 +1,104 @@
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ProductVariant, VariantType } from '@/types/marketplace';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+
+interface VariantSelectorProps {
+  type: VariantType;
+  label: string;
+  options: ProductVariant[];
+  selectedOptionId?: string;
+  onSelect: (variant: ProductVariant) => void;
+}
+
+/**
+ * Reusable selection group for a single variant dimension (e.g. Storage
+ * or Color). The same component/logic is reused for every variant type.
+ */
+export function VariantSelector({
+  label,
+  options,
+  selectedOptionId,
+  onSelect,
+}: VariantSelectorProps) {
+  if (options.length === 0) {
+    return null;
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.optionsRow}>
+        {options.map((option) => {
+          const isSelected = option.id === selectedOptionId;
+          return (
+            <Pressable
+              key={option.id}
+              onPress={() => onSelect(option)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={`${label} ${option.value}`}
+              style={[
+                styles.option,
+                isSelected ? styles.optionSelected : styles.optionUnselected,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.optionText,
+                  isSelected ? styles.optionTextSelected : styles.optionTextUnselected,
+                ]}
+              >
+                {option.value}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: spacing.lg,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginBottom: spacing.sm,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  option: {
+    paddingHorizontal: spacing.lg,
+    height: 40,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionSelected: {
+    borderColor: colors.purple,
+    backgroundColor: colors.purpleLight,
+  },
+  optionUnselected: {
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+  },
+  optionText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  optionTextSelected: {
+    color: colors.purple,
+  },
+  optionTextUnselected: {
+    color: colors.darkText,
+  },
+});

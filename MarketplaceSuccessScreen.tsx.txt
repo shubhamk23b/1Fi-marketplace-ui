@@ -1,0 +1,138 @@
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+import { RootStackParamList } from '@/navigation/types';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+import { formatCurrency } from '@/utils/emiCalculator';
+import { MarketplaceButton } from '@/components/marketplace/MarketplaceButton';
+
+type SuccessNavigationProp = NativeStackNavigationProp<RootStackParamList, 'MarketplaceSuccess'>;
+type SuccessRouteProp = RouteProp<RootStackParamList, 'MarketplaceSuccess'>;
+
+/**
+ * Polished confirmation screen shown after a mock EMI plan selection.
+ * This is a demo-only flow — no real payment or order processing occurs.
+ */
+export function MarketplaceSuccessScreen() {
+  const navigation = useNavigation<SuccessNavigationProp>();
+  const { params } = useRoute<SuccessRouteProp>();
+
+  const handleBackToMarketplace = () => {
+    navigation.popToTop();
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.content}>
+        <View style={styles.iconWrap}>
+          <Ionicons name="checkmark" size={40} color={colors.white} />
+        </View>
+
+        <Text style={styles.title}>You're all set!</Text>
+        <Text style={styles.subtitle}>Your EMI plan has been selected successfully.</Text>
+
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <Text style={styles.label}>Product</Text>
+            <Text style={styles.value}>{params.productName}</Text>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.row}>
+            <Text style={styles.label}>Plan</Text>
+            <Text style={styles.value}>{params.durationMonths} Months</Text>
+          </View>
+          <View style={styles.rowDivider} />
+          <View style={styles.row}>
+            <Text style={styles.label}>Monthly EMI</Text>
+            <Text style={styles.value}>{formatCurrency(params.monthlyAmount)}</Text>
+          </View>
+        </View>
+
+        <MarketplaceButton
+          label="Back to Marketplace"
+          onPress={handleBackToMarketplace}
+          style={styles.button}
+          accessibilityLabel="Back to Marketplace"
+        />
+
+        <Text style={styles.disclaimer}>
+          This is a demo flow only. No real order or payment has been processed.
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xxl,
+  },
+  iconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: colors.secondaryText,
+    textAlign: 'center',
+    marginBottom: spacing.xxl,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginBottom: spacing.xxl,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+  },
+  rowDivider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+  },
+  label: {
+    fontSize: 13,
+    color: colors.secondaryText,
+  },
+  value: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.darkText,
+  },
+  button: {
+    width: '100%',
+  },
+  disclaimer: {
+    fontSize: 11,
+    color: colors.mutedText,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+  },
+});

@@ -1,0 +1,67 @@
+import React from 'react';
+import { StyleSheet, View, ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/theme/colors';
+import { radius } from '@/theme/spacing';
+
+const ICON_BY_IMAGE_KEY: Record<string, keyof typeof Ionicons.glyphMap> = {
+  iphone: 'phone-portrait-outline',
+  galaxy: 'phone-portrait-outline',
+  macbook: 'laptop-outline',
+  laptop: 'laptop-outline',
+  headphones: 'headset-outline',
+  tv: 'tv-outline',
+  ipad: 'tablet-portrait-outline',
+  purifier: 'sparkles-outline',
+};
+
+interface ProductImagePlaceholderProps {
+  imageKey: string;
+  colorFrom: string;
+  colorTo: string;
+  style?: ViewStyle;
+  iconSize?: number;
+}
+
+/**
+ * We deliberately avoid remote image URLs (which can be broken/slow) and
+ * instead render a simple, on-brand illustrated placeholder built from
+ * plain React Native views + vector icons. This keeps product artwork
+ * resilient and dependency-free.
+ */
+export function ProductImagePlaceholder({
+  imageKey,
+  colorFrom,
+  colorTo,
+  style,
+  iconSize = 48,
+}: ProductImagePlaceholderProps) {
+  const iconName = ICON_BY_IMAGE_KEY[imageKey] ?? 'cube-outline';
+
+  return (
+    <View style={[styles.container, { backgroundColor: colorFrom }, style]}>
+      <View style={[styles.innerGlow, { backgroundColor: colorTo }]} />
+      <Ionicons name={iconName} size={iconSize} color={colors.white} style={styles.icon} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+    overflow: 'hidden',
+  },
+  innerGlow: {
+    position: 'absolute',
+    width: '140%',
+    height: '80%',
+    bottom: -20,
+    borderRadius: 999,
+    opacity: 0.55,
+  },
+  icon: {
+    opacity: 0.95,
+  },
+});

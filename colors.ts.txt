@@ -1,0 +1,33 @@
+/**
+ * 1Fi design tokens - colors.
+ * Keep every color reference in the app pointing here so the palette
+ * stays consistent and easy to re-theme.
+ */
+export const colors = {
+  purple: '#6C3CEB',
+  purpleDark: '#4E22C4',
+  purpleLight: '#F2EDFF',
+  purpleSoft: '#E7DBFF',
+
+  darkText: '#0B1B33',
+  secondaryText: '#68758A',
+  mutedText: '#98A2B3',
+
+  background: '#F7F7F8',
+  white: '#FFFFFF',
+
+  yellow: '#FFD83D',
+
+  border: '#E3E5EA',
+  borderLight: '#EDEEF2',
+
+  success: '#1BA672',
+  successLight: '#E7F8F1',
+  error: '#E14848',
+  errorLight: '#FDEAEA',
+
+  overlay: 'rgba(11, 27, 51, 0.45)',
+  shadow: '#0B1B33',
+} as const;
+
+export type ColorToken = keyof typeof colors;

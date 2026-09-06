@@ -1,0 +1,102 @@
+import React from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  ViewStyle,
+} from 'react-native';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+
+interface MarketplaceButtonProps {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  variant?: 'primary' | 'secondary';
+  style?: ViewStyle;
+  accessibilityLabel?: string;
+}
+
+/**
+ * The single primary CTA button style used across the Marketplace flow
+ * (Continue with EMI / Proceed / Back to Marketplace).
+ */
+export function MarketplaceButton({
+  label,
+  onPress,
+  disabled = false,
+  loading = false,
+  variant = 'primary',
+  style,
+  accessibilityLabel,
+}: MarketplaceButtonProps) {
+  const isPrimary = variant === 'primary';
+  const isDisabled = disabled || loading;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: isDisabled }}
+      style={({ pressed }) => [
+        styles.base,
+        isPrimary ? styles.primary : styles.secondary,
+        isDisabled && styles.disabled,
+        pressed && !isDisabled && styles.pressed,
+        style,
+      ]}
+    >
+      {loading ? (
+        <ActivityIndicator color={isPrimary ? colors.white : colors.purple} />
+      ) : (
+        <Text
+          style={[
+            styles.label,
+            isPrimary ? styles.labelPrimary : styles.labelSecondary,
+          ]}
+        >
+          {label}
+        </Text>
+      )}
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  base: {
+    height: 52,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  primary: {
+    backgroundColor: colors.purple,
+  },
+  secondary: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.purple,
+  },
+  disabled: {
+    backgroundColor: colors.border,
+    borderColor: colors.border,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  labelPrimary: {
+    color: colors.white,
+  },
+  labelSecondary: {
+    color: colors.purple,
+  },
+});

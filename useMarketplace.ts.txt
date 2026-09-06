@@ -1,0 +1,82 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { MarketplaceCategoryId, Product } from '@/types/marketplace';
+import { getProducts } from '@/services/marketplaceService';
+
+interface UseMarketplaceResult {
+  products: Product[];
+  filteredProducts: Product[];
+  loading: boolean;
+  error: string | null;
+  searchQuery: string;
+  selectedCategory: MarketplaceCategoryId;
+  setSearchQuery: (query: string) => void;
+  setSelectedCategory: (category: MarketplaceCategoryId) => void;
+  retry: () => void;
+}
+
+/**
+ * Owns all Marketplace listing state: fetching products, loading/error
+ * state, search and category filtering. Screens stay presentational and
+ * simply read from this hook.
+ */
+export function useMarketplace(): UseMarketplaceResult {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] =
+    useState<MarketplaceCategoryId>('all');
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await getProducts();
+      setProducts(result);
+    } catch (err) {
+      setError('Unable to load marketplace products.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const filteredProducts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return products.filter((product) => {
+      const matchesCategory =
+        selectedCategory === 'all' || product.category === selectedCategory;
+
+      if (!matchesCategory) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const haystack = `${product.name} ${product.brand} ${product.category}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [products, searchQuery, selectedCategory]);
+
+  const retry = useCallback(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  return {
+    products,
+    filteredProducts,
+    loading,
+    error,
+    searchQuery,
+    selectedCategory,
+    setSearchQuery,
+    setSelectedCategory,
+    retry,
+  };
+}

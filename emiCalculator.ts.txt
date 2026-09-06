@@ -1,0 +1,56 @@
+import { EMICalculationResult } from '@/types/marketplace';
+
+/**
+ * Calculates EMI figures for a given principal.
+ *
+ * For a 0% ("no-cost") plan the monthly EMI is simply principal / months
+ * and no interest is charged.
+ *
+ * For a plan with a non-zero annual interest rate, the standard reducing
+ * balance EMI formula is used:
+ *
+ *   EMI = P * r * (1 + r)^n / ((1 + r)^n - 1)
+ *
+ * where P = principal, r = monthly interest rate, n = number of months.
+ */
+export function calculateEMI(
+  principal: number,
+  months: number,
+  annualInterestRate: number = 0,
+  processingFee: number = 0
+): EMICalculationResult {
+  if (months <= 0) {
+    throw new Error('EMI duration must be a positive number of months');
+  }
+
+  if (annualInterestRate <= 0) {
+    const monthlyEMI = Math.round(principal / months);
+    const totalPayable = monthlyEMI * months + processingFee;
+    return {
+      monthlyEMI,
+      totalInterest: 0,
+      processingFee,
+      totalPayable,
+    };
+  }
+
+  const monthlyRate = annualInterestRate / 12 / 100;
+  const growth = Math.pow(1 + monthlyRate, months);
+  const rawEMI = (principal * monthlyRate * growth) / (growth - 1);
+  const monthlyEMI = Math.round(rawEMI);
+  const totalPayable = monthlyEMI * months + processingFee;
+  const totalInterest = totalPayable - principal - processingFee;
+
+  return {
+    monthlyEMI,
+    totalInterest: Math.max(0, Math.round(totalInterest)),
+    processingFee,
+    totalPayable,
+  };
+}
+
+/** Formats a number as an Indian Rupee amount, e.g. 79900 -> "₹79,900" */
+export function formatCurrency(amount: number): string {
+  const rounded = Math.round(amount);
+  return `₹${rounded.toLocaleString('en-IN')}`;
+}

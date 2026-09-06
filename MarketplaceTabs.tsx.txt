@@ -1,0 +1,91 @@
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { ShopTabId } from '@/types/marketplace';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+
+interface TabConfig {
+  id: ShopTabId;
+  label: string;
+}
+
+const TABS: TabConfig[] = [
+  { id: 'topBrands', label: 'Top Brands' },
+  { id: 'nearbyStores', label: 'Nearby Stores' },
+  { id: 'marketplace', label: '1Fi Marketplace' },
+];
+
+interface MarketplaceTabsProps {
+  activeTab: ShopTabId;
+  onChange: (tab: ShopTabId) => void;
+}
+
+/**
+ * Pill-shaped segmented control for the Shop screen. Adds the new
+ * "1Fi Marketplace" tab alongside the existing Top Brands / Nearby
+ * Stores tabs without altering their behaviour.
+ */
+export function MarketplaceTabs({ activeTab, onChange }: MarketplaceTabsProps) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.container}
+    >
+      {TABS.map((tab) => {
+        const isActive = tab.id === activeTab;
+        return (
+          <Pressable
+            key={tab.id}
+            onPress={() => onChange(tab.id)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+            accessibilityLabel={tab.label}
+            style={[styles.tab, isActive ? styles.tabActive : styles.tabInactive]}
+          >
+            <Text style={[styles.label, isActive ? styles.labelActive : styles.labelInactive]}>
+              {tab.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: colors.purpleLight,
+    borderRadius: radius.pill,
+    padding: 4,
+    gap: 4,
+  },
+  tab: {
+    paddingHorizontal: spacing.lg,
+    height: 38,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabActive: {
+    backgroundColor: colors.white,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  tabInactive: {
+    backgroundColor: 'transparent',
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  labelActive: {
+    color: colors.purple,
+  },
+  labelInactive: {
+    color: colors.secondaryText,
+  },
+});

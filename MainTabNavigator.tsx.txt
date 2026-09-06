@@ -1,0 +1,76 @@
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import { MainTabParamList } from './types';
+import { HomeScreen } from '@/screens/Home/HomeScreen';
+import { ShopScreen } from '@/screens/Shop/ShopScreen';
+import { PlaceholderScreen } from '@/screens/PlaceholderScreen';
+import { colors } from '@/theme/colors';
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const ICONS: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
+  Home: 'home',
+  Shop: 'storefront',
+  EMIDues: 'card',
+  Limit: 'speedometer',
+  Profile: 'person',
+};
+
+const LABELS: Record<keyof MainTabParamList, string> = {
+  Home: 'Home',
+  Shop: 'Shop',
+  EMIDues: 'EMI Dues',
+  Limit: 'Limit',
+  Profile: 'Profile',
+};
+
+/**
+ * Existing bottom navigation, reused as-is (Home, Shop, EMI Dues, Limit,
+ * Profile) — not redesigned as part of this assignment.
+ */
+export function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: colors.purple,
+        tabBarInactiveTintColor: colors.secondaryText,
+        tabBarLabel: LABELS[route.name as keyof MainTabParamList],
+        tabBarIcon: ({ color, size, focused }) => (
+          <Ionicons
+            name={
+              focused
+                ? ICONS[route.name as keyof MainTabParamList]
+                : (`${ICONS[route.name as keyof MainTabParamList]}-outline` as keyof typeof Ionicons.glyphMap)
+            }
+            color={color}
+            size={size}
+          />
+        ),
+        tabBarStyle: {
+          borderTopColor: colors.border,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 6,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+        },
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Shop" component={ShopScreen} />
+      <Tab.Screen name="EMIDues">
+        {() => <PlaceholderScreen title="EMI Dues" icon="card-outline" />}
+      </Tab.Screen>
+      <Tab.Screen name="Limit">
+        {() => <PlaceholderScreen title="Limit" icon="speedometer-outline" />}
+      </Tab.Screen>
+      <Tab.Screen name="Profile">
+        {() => <PlaceholderScreen title="Profile" icon="person-outline" />}
+      </Tab.Screen>
+    </Tab.Navigator>
+  );
+}

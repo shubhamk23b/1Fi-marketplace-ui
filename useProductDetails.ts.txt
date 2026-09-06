@@ -1,0 +1,108 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { EMIPlan, Product, ProductVariant } from '@/types/marketplace';
+import { getProductById } from '@/services/marketplaceService';
+
+interface UseProductDetailsResult {
+  product: Product | undefined;
+  loading: boolean;
+  error: string | null;
+  selectedVariants: Record<string, ProductVariant>;
+  selectedEMIPlan: EMIPlan | null;
+  effectivePrice: number;
+  isSelectionComplete: boolean;
+  selectVariant: (variant: ProductVariant) => void;
+  selectEMIPlan: (plan: EMIPlan) => void;
+  retry: () => void;
+}
+
+/**
+ * Owns all Product Details state: fetching the product, tracking which
+ * variant (per variant type) and EMI plan the user has picked, and
+ * deriving the effective price. Keeping this in a hook keeps the screen
+ * itself purely presentational.
+ */
+export function useProductDetails(productId: string): UseProductDetailsResult {
+  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedVariants, setSelectedVariants] = useState<
+    Record<string, ProductVariant>
+  >({});
+  const [selectedEMIPlan, setSelectedEMIPlan] = useState<EMIPlan | null>(null);
+
+  const fetchProduct = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await getProductById(productId);
+      if (!result) {
+        setError('This product could not be found.');
+        setProduct(undefined);
+        return;
+      }
+      setProduct(result);
+
+      // Pre-select the first value for every distinct variant type so the
+      // details screen never shows an "unselected" product image state.
+      const defaults: Record<string, ProductVariant> = {};
+      result.variants.forEach((variant) => {
+        if (!defaults[variant.type]) {
+          defaults[variant.type] = variant;
+        }
+      });
+      setSelectedVariants(defaults);
+      setSelectedEMIPlan(null);
+    } catch (err) {
+      setError('Unable to load this product right now.');
+    } finally {
+      setLoading(false);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  const selectVariant = useCallback((variant: ProductVariant) => {
+    setSelectedVariants((prev) => ({ ...prev, [variant.type]: variant }));
+  }, []);
+
+  const selectEMIPlan = useCallback((plan: EMIPlan) => {
+    setSelectedEMIPlan(plan);
+  }, []);
+
+  const effectivePrice = useMemo(() => {
+    if (!product) return 0;
+    const delta = Object.values(selectedVariants).reduce(
+      (sum, variant) => sum + (variant.priceDelta ?? 0),
+      0
+    );
+    return product.price + delta;
+  }, [product, selectedVariants]);
+
+  const isSelectionComplete = useMemo(() => {
+    if (!product) return false;
+    const requiredVariantTypes = new Set(product.variants.map((v) => v.type));
+    const hasAllVariants = Array.from(requiredVariantTypes).every(
+      (type) => !!selectedVariants[type]
+    );
+    return hasAllVariants && !!selectedEMIPlan;
+  }, [product, selectedVariants, selectedEMIPlan]);
+
+  const retry = useCallback(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
+  return {
+    product,
+    loading,
+    error,
+    selectedVariants,
+    selectedEMIPlan,
+    effectivePrice,
+    isSelectionComplete,
+    selectVariant,
+    selectEMIPlan,
+    retry,
+  };
+}

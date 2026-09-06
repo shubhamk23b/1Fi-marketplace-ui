@@ -1,0 +1,206 @@
+import React, { useEffect, useState } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { Brand, NearbyStore, ShopTabId } from '@/types/marketplace';
+import { getBrands, getNearbyStores } from '@/services/marketplaceService';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+import { MarketplaceTabs } from '@/components/marketplace/MarketplaceTabs';
+import { SearchBar } from '@/components/marketplace/SearchBar';
+import { StoreCard } from '@/components/marketplace/StoreCard';
+import { LoadingState } from '@/components/marketplace/LoadingState';
+import { ErrorState } from '@/components/marketplace/ErrorState';
+import { EmptyState } from '@/components/marketplace/EmptyState';
+import { MarketplaceScreen } from '@/screens/Marketplace/MarketplaceScreen';
+
+/**
+ * The existing Shop experience: Top Brands and Nearby Stores remain the
+ * static/functional experiences they were, with the new "1Fi Marketplace"
+ * tab added alongside them (rendered via the shared MarketplaceScreen).
+ */
+export function ShopScreen() {
+  const [activeTab, setActiveTab] = useState<ShopTabId>('topBrands');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [stores, setStores] = useState<NearbyStore[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadShopData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [brandResult, storeResult] = await Promise.all([
+        getBrands(),
+        getNearbyStores(),
+      ]);
+      setBrands(brandResult);
+      setStores(storeResult);
+    } catch (err) {
+      setError('Unable to load Shop data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadShopData();
+  }, []);
+
+  const filteredBrands = brands.filter((brand) =>
+    brand.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
+  const filteredStores = stores.filter((store) =>
+    store.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
+
+  const renderTopBrands = () => {
+    if (loading) return <LoadingState variant="inline" />;
+    if (error) return <ErrorState message={error} onRetry={loadShopData} />;
+    if (filteredBrands.length === 0) return <EmptyState title="No stores found" />;
+
+    return (
+      <FlatList
+        data={filteredBrands}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <StoreCard
+            title={item.name}
+            subtitle={item.emiInfo}
+            logoInitial={item.logoInitial}
+            logoColor={item.logoColor}
+          />
+        )}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+      />
+    );
+  };
+
+  const renderNearbyStores = () => {
+    if (loading) return <LoadingState variant="inline" />;
+    if (error) return <ErrorState message={error} onRetry={loadShopData} />;
+    if (filteredStores.length === 0) return <EmptyState title="No stores found" />;
+
+    return (
+      <FlatList
+        data={filteredStores}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={styles.cityPicker} accessibilityRole="button" accessibilityLabel="Gurugram, change city">
+            <Text style={styles.cityText}>Gurugram</Text>
+            <Ionicons name="chevron-down" size={16} color={colors.secondaryText} />
+          </View>
+        }
+        renderItem={({ item }) => (
+          <StoreCard
+            title={item.name}
+            subtitle={item.address}
+            logoInitial={item.logoInitial}
+            logoColor={item.logoColor}
+            trailingLabel={`${item.distanceKm.toFixed(1)} KM`}
+          />
+        )}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+      />
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.banner}>
+        <Text style={styles.bannerEyebrow}>1FI SHOP</Text>
+        <Text style={styles.bannerTitle}>Shop smarter, pay later</Text>
+        <Text style={styles.bannerSubtitle}>
+          No-cost EMIs at top brands and your favourite local stores.
+        </Text>
+      </View>
+
+      <View style={styles.tabsWrap}>
+        <MarketplaceTabs activeTab={activeTab} onChange={setActiveTab} />
+      </View>
+
+      {activeTab !== 'marketplace' && (
+        <View style={styles.searchWrap}>
+          <SearchBar value={searchQuery} onChangeText={setSearchQuery} placeholder="Search online stores..." />
+        </View>
+      )}
+
+      <View style={styles.body}>
+        {activeTab === 'topBrands' && renderTopBrands()}
+        {activeTab === 'nearbyStores' && renderNearbyStores()}
+        {activeTab === 'marketplace' && <MarketplaceScreen embedded />}
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  banner: {
+    backgroundColor: colors.purple,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+  },
+  bannerEyebrow: {
+    color: colors.yellow,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginBottom: spacing.xs,
+  },
+  bannerTitle: {
+    color: colors.white,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  bannerSubtitle: {
+    color: colors.purpleSoft,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  tabsWrap: {
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    alignItems: 'flex-start',
+  },
+  searchWrap: {
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  body: {
+    flex: 1,
+    marginTop: spacing.lg,
+  },
+  listContent: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xxxl,
+  },
+  cityPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: colors.white,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    height: 34,
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
+  },
+  cityText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.darkText,
+  },
+});

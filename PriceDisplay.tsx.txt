@@ -1,0 +1,74 @@
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { colors } from '@/theme/colors';
+import { spacing } from '@/theme/spacing';
+import { formatCurrency } from '@/utils/emiCalculator';
+
+interface PriceDisplayProps {
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  size?: 'small' | 'large';
+}
+
+/**
+ * Renders current price alongside a struck-through original price and
+ * discount badge, when applicable. Pure presentation, no business logic.
+ */
+export function PriceDisplay({
+  price,
+  originalPrice,
+  discount,
+  size = 'small',
+}: PriceDisplayProps) {
+  const isLarge = size === 'large';
+
+  return (
+    <View style={styles.row}>
+      <Text style={[styles.price, isLarge && styles.priceLarge]}>
+        {formatCurrency(price)}
+      </Text>
+      {!!originalPrice && originalPrice > price && (
+        <Text style={styles.originalPrice}>{formatCurrency(originalPrice)}</Text>
+      )}
+      {!!discount && (
+        <View style={styles.discountBadge}>
+          <Text style={styles.discountText}>{discount}% OFF</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  price: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.darkText,
+  },
+  priceLarge: {
+    fontSize: 24,
+  },
+  originalPrice: {
+    fontSize: 13,
+    color: colors.mutedText,
+    textDecorationLine: 'line-through',
+  },
+  discountBadge: {
+    backgroundColor: colors.successLight,
+    borderRadius: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  discountText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.success,
+  },
+});

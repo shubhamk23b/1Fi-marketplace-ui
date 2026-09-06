@@ -1,0 +1,63 @@
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/theme/colors';
+import { spacing } from '@/theme/spacing';
+
+interface PlaceholderScreenProps {
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}
+
+/**
+ * Generic placeholder used for the bottom-nav tabs that are outside the
+ * scope of this assignment (EMI Dues, Limit, Profile). Kept intentionally
+ * simple so we don't redesign features the assignment says not to touch.
+ */
+export function PlaceholderScreen({ title, icon }: PlaceholderScreenProps) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.content}>
+        <View style={styles.iconWrap}>
+          <Ionicons name={icon} size={28} color={colors.purple} />
+        </View>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.subtitle}>This section is outside the scope of this assignment.</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xxxl,
+  },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.purpleLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: colors.secondaryText,
+    textAlign: 'center',
+  },
+});

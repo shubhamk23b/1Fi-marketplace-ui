@@ -1,0 +1,61 @@
+import React from 'react';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+
+interface CategoryChipProps {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}
+
+/** A single selectable category pill used in the horizontal category rail. */
+export function CategoryChip({ label, selected, onPress }: CategoryChipProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      accessibilityLabel={`${label} category`}
+      style={({ pressed }) => [
+        styles.chip,
+        selected ? styles.chipSelected : styles.chipUnselected,
+        pressed && styles.pressed,
+      ]}
+    >
+      <Text style={[styles.label, selected ? styles.labelSelected : styles.labelUnselected]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  chip: {
+    paddingHorizontal: spacing.lg,
+    height: 36,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  chipSelected: {
+    backgroundColor: colors.purple,
+  },
+  chipUnselected: {
+    backgroundColor: colors.purpleLight,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  labelSelected: {
+    color: colors.white,
+  },
+  labelUnselected: {
+    color: colors.darkText,
+  },
+});

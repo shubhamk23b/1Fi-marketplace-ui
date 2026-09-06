@@ -1,0 +1,87 @@
+/**
+ * Shared types for the 1Fi Marketplace feature.
+ * Keeping these centralised avoids duplicated/ conflicting shapes
+ * across components, hooks and the service layer.
+ */
+
+export type MarketplaceCategoryId =
+  | 'all'
+  | 'electronics'
+  | 'mobiles'
+  | 'laptops'
+  | 'home'
+  | 'travel';
+
+export interface MarketplaceCategory {
+  id: MarketplaceCategoryId;
+  label: string;
+}
+
+export type VariantType = 'storage' | 'color';
+
+export interface ProductVariant {
+  id: string;
+  type: VariantType;
+  value: string;
+  /** extra price added on top of base price when this variant is picked, defaults to 0 */
+  priceDelta?: number;
+}
+
+export interface ProductSpecification {
+  label: string;
+  value: string;
+}
+
+export interface EMIPlan {
+  id: string;
+  durationMonths: number;
+  monthlyAmount: number;
+  interestRate: number;
+  processingFee: number;
+  totalPayable: number;
+  isNoCost: boolean;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  category: Exclude<MarketplaceCategoryId, 'all'>;
+  image: string;
+  imageColors: [string, string];
+  rating?: number;
+  ratingCount?: number;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  description: string;
+  variants: ProductVariant[];
+  specifications: ProductSpecification[];
+  emiPlans: EMIPlan[];
+}
+
+export interface Brand {
+  id: string;
+  name: string;
+  logoInitial: string;
+  logoColor: string;
+  emiInfo: string;
+}
+
+export interface NearbyStore {
+  id: string;
+  name: string;
+  address: string;
+  distanceKm: number;
+  logoInitial: string;
+  logoColor: string;
+}
+
+export interface EMICalculationResult {
+  monthlyEMI: number;
+  totalInterest: number;
+  processingFee: number;
+  totalPayable: number;
+}
+
+export type ShopTabId = 'topBrands' | 'nearbyStores' | 'marketplace';

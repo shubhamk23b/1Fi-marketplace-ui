@@ -1,0 +1,91 @@
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+
+interface StoreCardProps {
+  title: string;
+  subtitle: string;
+  logoInitial: string;
+  logoColor: string;
+  trailingLabel?: string;
+}
+
+/**
+ * Shared card used by both the existing "Nearby Stores" tab and
+ * "Top Brands" tab — logo on the left, title + subtitle, optional
+ * trailing label (distance).
+ */
+export function StoreCard({
+  title,
+  subtitle,
+  logoInitial,
+  logoColor,
+  trailingLabel,
+}: StoreCardProps) {
+  return (
+    <View style={styles.card}>
+      <View style={[styles.logo, { backgroundColor: logoColor }]}>
+        <Text style={styles.logoText}>{logoInitial}</Text>
+      </View>
+      <View style={styles.textBlock}>
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
+        <Text style={styles.subtitle} numberOfLines={2}>
+          {subtitle}
+        </Text>
+      </View>
+      {!!trailingLabel && <Text style={styles.trailing}>{trailingLabel}</Text>}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.md,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  logo: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  textBlock: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.darkText,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: colors.secondaryText,
+    marginTop: 2,
+  },
+  trailing: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.purple,
+    marginLeft: spacing.sm,
+  },
+});

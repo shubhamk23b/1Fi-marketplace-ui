@@ -1,0 +1,51 @@
+import { colors } from './colors';
+
+/**
+ * 1Fi design tokens - typography.
+ * Centralised text styles so screens/components stay visually consistent.
+ */
+export const typography = {
+  h1: {
+    fontSize: 26,
+    fontWeight: '700' as const,
+    color: colors.darkText,
+    letterSpacing: -0.4,
+  },
+  h2: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: colors.darkText,
+  },
+  h3: {
+    fontSize: 17,
+    fontWeight: '600' as const,
+    color: colors.darkText,
+  },
+  body: {
+    fontSize: 14,
+    fontWeight: '400' as const,
+    color: colors.darkText,
+  },
+  bodyMedium: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: colors.darkText,
+  },
+  caption: {
+    fontSize: 12,
+    fontWeight: '400' as const,
+    color: colors.secondaryText,
+  },
+  captionMedium: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: colors.secondaryText,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: colors.purple,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.4,
+  },
+} as const;

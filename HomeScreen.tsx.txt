@@ -1,0 +1,135 @@
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+
+/**
+ * Lightweight recreation of the existing 1Fi Home screen, included only
+ * to give the assignment a runnable app shell. This assignment focuses
+ * on the Shop -> 1Fi Marketplace flow, so this screen is intentionally
+ * minimal and left unmodified in spirit.
+ */
+export function HomeScreen() {
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroCard}>
+          <Text style={styles.heroEyebrow}>GET STARTED</Text>
+          <Text style={styles.heroTitle}>Shop on no-cost EMI</Text>
+          <Text style={styles.heroBody}>
+            Backed by your mutual funds, No credit pull, No charges, & quick approval.
+          </Text>
+          <View style={styles.heroCta}>
+            <Text style={styles.heroCtaText}>Check eligibility</Text>
+            <Ionicons name="arrow-forward" size={16} color={colors.white} />
+          </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>OFFERS</Text>
+        <View style={styles.offerCard}>
+          <Text style={styles.offerTitle}>Flat cashback on electronics</Text>
+          <Text style={styles.offerBody}>Use your 1Fi limit at top brands this week.</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>SHOP USING 1FI AT TOP BRANDS</Text>
+        <View style={styles.brandRow}>
+          {['AI', 'CR', 'T', 'Y'].map((initial) => (
+            <View key={initial} style={styles.brandBubble}>
+              <Text style={styles.brandBubbleText}>{initial}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xxxl,
+  },
+  heroCard: {
+    backgroundColor: colors.purple,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
+    marginBottom: spacing.xxl,
+  },
+  heroEyebrow: {
+    color: colors.yellow,
+    fontWeight: '700',
+    fontSize: 12,
+    letterSpacing: 0.6,
+    marginBottom: spacing.sm,
+  },
+  heroTitle: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 22,
+    marginBottom: spacing.sm,
+  },
+  heroBody: {
+    color: colors.purpleSoft,
+    fontSize: 13,
+    lineHeight: 19,
+    marginBottom: spacing.lg,
+  },
+  heroCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+  },
+  heroCtaText: {
+    color: colors.white,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.secondaryText,
+    letterSpacing: 0.4,
+    marginBottom: spacing.md,
+  },
+  offerCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginBottom: spacing.xxl,
+  },
+  offerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginBottom: spacing.xs,
+  },
+  offerBody: {
+    fontSize: 13,
+    color: colors.secondaryText,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  brandBubble: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.purpleLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandBubbleText: {
+    color: colors.purple,
+    fontWeight: '700',
+  },
+});

@@ -1,0 +1,409 @@
+import React, { useMemo, useState } from 'react';
+import { Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { RootStackParamList } from '@/navigation/types';
+import { useProductDetails } from '@/hooks/marketplace/useProductDetails';
+import { colors } from '@/theme/colors';
+import { radius, spacing } from '@/theme/spacing';
+import { formatCurrency } from '@/utils/emiCalculator';
+import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
+import { PriceDisplay } from '@/components/marketplace/PriceDisplay';
+import { VariantSelector } from '@/components/marketplace/VariantSelector';
+import { EMIPlanSelector } from '@/components/marketplace/EMIPlanSelector';
+import { MarketplaceButton } from '@/components/marketplace/MarketplaceButton';
+import { LoadingState } from '@/components/marketplace/LoadingState';
+import { ErrorState } from '@/components/marketplace/ErrorState';
+import { ProductImagePlaceholder } from '@/components/marketplace/ProductImagePlaceholder';
+import { VariantType } from '@/types/marketplace';
+
+type ProductDetailsNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ProductDetails'>;
+type ProductDetailsRouteProp = RouteProp<RootStackParamList, 'ProductDetails'>;
+
+const VARIANT_LABELS: Record<VariantType, string> = {
+  storage: 'Storage',
+  color: 'Color',
+};
+
+/**
+ * Full product detail experience: gallery, price, description, specs,
+ * variant + EMI plan selection, and a review confirmation modal before
+ * handing off to the success screen.
+ */
+export function ProductDetailsScreen() {
+  const navigation = useNavigation<ProductDetailsNavigationProp>();
+  const route = useRoute<ProductDetailsRouteProp>();
+  const { productId } = route.params;
+
+  const {
+    product,
+    loading,
+    error,
+    selectedVariants,
+    selectedEMIPlan,
+    effectivePrice,
+    isSelectionComplete,
+    selectVariant,
+    selectEMIPlan,
+    retry,
+  } = useProductDetails(productId);
+
+  const [reviewVisible, setReviewVisible] = useState(false);
+
+  const variantGroups = useMemo(() => {
+    if (!product) return [];
+    const types = Array.from(new Set(product.variants.map((v) => v.type)));
+    return types.map((type) => ({
+      type,
+      label: VARIANT_LABELS[type] ?? type,
+      options: product.variants.filter((v) => v.type === type),
+    }));
+  }, [product]);
+
+  const variantSummary = useMemo(() => {
+    return Object.values(selectedVariants)
+      .map((variant) => variant.value)
+      .join(' • ');
+  }, [selectedVariants]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <MarketplaceHeader title="Product details" onBack={() => navigation.goBack()} />
+        <LoadingState variant="inline" />
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <MarketplaceHeader title="Product details" onBack={() => navigation.goBack()} />
+        <ErrorState message={error ?? 'This product could not be found.'} onRetry={retry} />
+      </SafeAreaView>
+    );
+  }
+
+  const handleProceed = () => {
+    if (!selectedEMIPlan) return;
+    setReviewVisible(false);
+    navigation.replace('MarketplaceSuccess', {
+      productName: product.name,
+      durationMonths: selectedEMIPlan.durationMonths,
+      monthlyAmount: selectedEMIPlan.monthlyAmount,
+    });
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <MarketplaceHeader title={product.brand} onBack={() => navigation.goBack()} />
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <ProductImagePlaceholder
+          imageKey={product.image}
+          colorFrom={product.imageColors[0]}
+          colorTo={product.imageColors[1]}
+          style={styles.heroImage}
+          iconSize={72}
+        />
+
+        <View style={styles.section}>
+          <Text style={styles.name}>{product.name}</Text>
+          {!!product.rating && (
+            <View style={styles.ratingRow}>
+              <Ionicons name="star" size={14} color={colors.yellow} />
+              <Text style={styles.ratingText}>
+                {product.rating.toFixed(1)} ({product.ratingCount?.toLocaleString('en-IN')} ratings)
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.priceBlock}>
+            <PriceDisplay
+              price={effectivePrice}
+              originalPrice={product.originalPrice}
+              discount={product.discount}
+              size="large"
+            />
+          </View>
+          <View style={styles.noCostPill}>
+            <Text style={styles.noCostText}>No-cost EMI available</Text>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Description</Text>
+          <Text style={styles.description}>{product.description}</Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Specifications</Text>
+          {product.specifications.map((spec) => (
+            <View key={spec.label} style={styles.specRow}>
+              <Text style={styles.specLabel}>{spec.label}</Text>
+              <Text style={styles.specValue}>{spec.value}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          {variantGroups.map((group) => (
+            <VariantSelector
+              key={group.type}
+              type={group.type}
+              label={group.label}
+              options={group.options}
+              selectedOptionId={selectedVariants[group.type]?.id}
+              onSelect={selectVariant}
+            />
+          ))}
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          <EMIPlanSelector
+            plans={product.emiPlans}
+            selectedPlanId={selectedEMIPlan?.id}
+            onSelect={selectEMIPlan}
+          />
+        </View>
+      </ScrollView>
+
+      <View style={styles.ctaBar}>
+        <MarketplaceButton
+          label="Continue with EMI"
+          onPress={() => setReviewVisible(true)}
+          disabled={!isSelectionComplete}
+          accessibilityLabel="Continue with selected EMI plan"
+        />
+      </View>
+
+      <Modal
+        visible={reviewVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReviewVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.reviewCard}>
+            <Text style={styles.reviewTitle}>Review your purchase</Text>
+
+            <Text style={styles.reviewProductName}>{product.name}</Text>
+            {!!variantSummary && <Text style={styles.reviewVariant}>{variantSummary}</Text>}
+            <Text style={styles.reviewPrice}>{formatCurrency(effectivePrice)}</Text>
+
+            {selectedEMIPlan && (
+              <View style={styles.reviewPlanBlock}>
+                <Text style={styles.reviewPlanTitle}>
+                  {selectedEMIPlan.durationMonths} month EMI
+                </Text>
+                <Text style={styles.reviewMonthly}>
+                  {formatCurrency(selectedEMIPlan.monthlyAmount)}/month
+                </Text>
+
+                <View style={styles.reviewDetailsRow}>
+                  <View style={styles.reviewDetailItem}>
+                    <Text style={styles.specLabel}>Interest</Text>
+                    <Text style={styles.specValue}>{selectedEMIPlan.interestRate}%</Text>
+                  </View>
+                  <View style={styles.reviewDetailItem}>
+                    <Text style={styles.specLabel}>Processing Fee</Text>
+                    <Text style={styles.specValue}>
+                      {formatCurrency(selectedEMIPlan.processingFee)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.reviewActions}>
+              <MarketplaceButton
+                label="Proceed"
+                onPress={handleProceed}
+                accessibilityLabel="Proceed with this EMI plan"
+              />
+              <MarketplaceButton
+                label="Cancel"
+                variant="secondary"
+                onPress={() => setReviewVisible(false)}
+                style={styles.cancelButton}
+                accessibilityLabel="Cancel and go back"
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
+    paddingBottom: 120,
+  },
+  heroImage: {
+    marginHorizontal: spacing.lg,
+    height: 220,
+    marginTop: spacing.sm,
+  },
+  section: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginHorizontal: spacing.lg,
+  },
+  name: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginBottom: spacing.xs,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: spacing.md,
+  },
+  ratingText: {
+    fontSize: 12,
+    color: colors.secondaryText,
+  },
+  priceBlock: {
+    marginBottom: spacing.sm,
+  },
+  noCostPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.purpleLight,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  noCostText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.purple,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginBottom: spacing.sm,
+  },
+  description: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.secondaryText,
+  },
+  specRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  specLabel: {
+    fontSize: 13,
+    color: colors.secondaryText,
+  },
+  specValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.darkText,
+  },
+  ctaBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: spacing.lg,
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'flex-end',
+  },
+  reviewCard: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    padding: spacing.xl,
+    paddingBottom: spacing.xxxl,
+  },
+  reviewTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginBottom: spacing.lg,
+  },
+  reviewProductName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.darkText,
+  },
+  reviewVariant: {
+    fontSize: 12,
+    color: colors.secondaryText,
+    marginTop: 2,
+  },
+  reviewPrice: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginTop: spacing.sm,
+  },
+  reviewPlanBlock: {
+    marginTop: spacing.lg,
+    backgroundColor: colors.purpleLight,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+  },
+  reviewPlanTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.purpleDark,
+  },
+  reviewMonthly: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.darkText,
+    marginTop: 2,
+    marginBottom: spacing.sm,
+  },
+  reviewDetailsRow: {
+    flexDirection: 'row',
+    gap: spacing.xxl,
+  },
+  reviewDetailItem: {
+    gap: 2,
+  },
+  reviewActions: {
+    marginTop: spacing.xl,
+    gap: spacing.sm,
+  },
+  cancelButton: {
+    marginTop: 0,
+  },
+});
